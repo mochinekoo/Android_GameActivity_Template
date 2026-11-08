@@ -28,6 +28,7 @@ public:
     GLint LoadCode(GLenum type, const char* source);
     GLint LoadFile(GLenum type, const char* path);
 
+    android_app* getApp() const { return app_; }
     GLuint getShaderProgram() const { return shaderProgram_; }
     GLuint getVAO() const { return vao_; }
     GLuint getVBO() const { return vbo_; }

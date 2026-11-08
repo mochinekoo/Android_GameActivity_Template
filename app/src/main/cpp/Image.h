@@ -8,14 +8,17 @@
 
 #include <android/asset_manager.h>
 #include <GLES3/gl3.h>
+#include <vector>
+#include <game-activity/native_app_glue/android_native_app_glue.h>
 
 class Image {
 private:
     GLuint textureID_;
+    android_app* app_;
 public:
 
-    static Image* Load(AAssetManager* assetManager, const char* path) {
-        AAsset* asset = AAssetManager_open(assetManager, path, AASSET_MODE_BUFFER);
+    static Image* Load(android_app* app, const char* path) {
+        AAsset* asset = AAssetManager_open(app->activity->assetManager, path, AASSET_MODE_BUFFER);
         AImageDecoder* imageDecoder = nullptr;
         AImageDecoder_createFromAAsset(asset, &imageDecoder);
         AImageDecoder_setAndroidBitmapFormat(imageDecoder, ANDROID_BITMAP_FORMAT_RGBA_8888);
@@ -48,14 +51,22 @@ public:
         );
         glGenerateMipmap(GL_TEXTURE_2D);
 
-        return new Image(textureID);
+        return new Image(app, textureID);
     };
 
-    Image(GLuint textureID) {
+    Image(android_app* app, GLuint textureID) {
         textureID_ = textureID;
+        app_ = app;
     };
 
     GLuint getTextureID() const { return textureID_; }
+
+    void Init();
+    void Update();
+    void Draw();
+    void Release();
+
+    void InitShader();
 };
 
 

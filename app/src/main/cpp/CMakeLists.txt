@@ -11,6 +11,7 @@ add_library(android_gameactivity_template SHARED
         main.cpp
         DebugScene.cpp
         ShaderManager.cpp
+        Image.cpp
 
         ImGUI/imgui.cpp
         ImGUI/imgui_demo.cpp

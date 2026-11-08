@@ -18,7 +18,6 @@
 #include "ImGUI/imgui_impl_android.h"
 
 namespace {
-    ShaderManager* shaderManager_ = nullptr;
     Image* image_ = nullptr;
 }
 
@@ -64,10 +63,8 @@ void DebugScene::Init() {
     resultFunc = eglMakeCurrent(display_, surface_, surface_, context_);
     __android_log_print(ANDROID_LOG_INFO, LOG_TAG, "サーフェス: %d", resultFunc);
 
-    shaderManager_ = new ShaderManager(app_);
-    shaderManager_->Init();
-
-    image_ = Image::Load(app_->activity->assetManager, "android_robot.png");
+    image_ = Image::Load(app_, "android_robot.png");
+    image_->Init();
     initialized_ = true;
 }
 
@@ -87,35 +84,8 @@ void DebugScene::Draw() {
     ImGui_ImplOpenGL3_NewFrame();
     ImGui::NewFrame();
 
-    glUseProgram(shaderManager_->getShaderProgram());
-
-    const GLfloat identity[16] = {
-            1, 0, 0, 0,
-            0, 1, 0, 0,
-            0, 0, 1, 0,
-            0, 0, 0, 1
-    };
-
-    GLint projectionLocation = glGetUniformLocation(
-            shaderManager_->getShaderProgram(), "uProjection"
-    );
-
-    glUniformMatrix4fv(
-            projectionLocation, 1, GL_FALSE, identity
-    );
-
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, image_->getTextureID());
-
-    GLint textureLocation = glGetUniformLocation(
-            shaderManager_->getShaderProgram(), "uTexture"
-    );
-
-    glUniform1i(textureLocation, 0);
-
-    glBindVertexArray(shaderManager_->getVAO());
-    glDrawArrays(GL_TRIANGLES, 0, 6);
-    glBindVertexArray(0);
+    image_->Update();
+    image_->Draw();
 
     //imgui
     ImGui::Begin("Debug");
