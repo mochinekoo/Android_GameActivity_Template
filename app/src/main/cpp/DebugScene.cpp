@@ -12,9 +12,11 @@
 
 #include "DebugScene.h"
 #include "ShaderManager.h"
+#include "Image.h"
 
 namespace {
     ShaderManager* shaderManager_ = nullptr;
+    Image* image_ = nullptr;
 }
 
 DebugScene::~DebugScene() {
@@ -61,6 +63,8 @@ void DebugScene::Init() {
 
     shaderManager_ = new ShaderManager(app_);
     shaderManager_->Init();
+
+    image_ = Image::Load(app_->activity->assetManager, "android_robot.png");
     initialized_ = true;
 }
 
@@ -77,6 +81,31 @@ void DebugScene::Draw() {
     glClear(GL_COLOR_BUFFER_BIT);
 
     glUseProgram(shaderManager_->getShaderProgram());
+
+    const GLfloat identity[16] = {
+            1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            0, 0, 0, 1
+    };
+
+    GLint projectionLocation = glGetUniformLocation(
+            shaderManager_->getShaderProgram(), "uProjection"
+    );
+
+    glUniformMatrix4fv(
+            projectionLocation, 1, GL_FALSE, identity
+    );
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, image_->getTextureID());
+
+    GLint textureLocation = glGetUniformLocation(
+            shaderManager_->getShaderProgram(), "uTexture"
+    );
+
+    glUniform1i(textureLocation, 0);
+
     glBindVertexArray(shaderManager_->getVAO());
     glDrawArrays(GL_TRIANGLES, 0, 6);
     glBindVertexArray(0);

@@ -1,7 +1,12 @@
 #version 300 es
+layout(location = 0) in vec3 inPosition;
+layout(location = 1) in vec2 inUV;
 
-layout(location = 0) in vec2 aPosition;
+out vec2 fragUV;
+
+uniform mat4 uProjection;
 
 void main() {
-    gl_Position = vec4(aPosition, 0.0, 1.0);
+    fragUV = inUV;
+    gl_Position = uProjection * vec4(inPosition, 1.0);
 }
