@@ -43,5 +43,14 @@ void DebugScene::Draw() {
 
     //imgui
     ImGui::Begin("Debug");
+    ImGui::SliderFloat("LocX", &image_->transform_.location_.x, -1.0f, 1.0f);
+    ImGui::SliderFloat("LocY", &image_->transform_.location_.y, -1.0f, 1.0f);
+    ImGui::SliderFloat("LocZ", &image_->transform_.location_.z, -1.0f, 1.0f);
+    ImGui::SliderFloat("ScaleX", &image_->transform_.scale_.x, 0, 10.0f);
+    ImGui::SliderFloat("ScaleY", &image_->transform_.scale_.y, 0, 10.0f);
+    ImGui::SliderFloat("ScaleZ", &image_->transform_.scale_.z, 0, 10.0f);
+    ImGui::SliderFloat("RotationX", &image_->transform_.rotation_.x, -1.0f, 1.0f);
+    ImGui::SliderFloat("RotationY", &image_->transform_.rotation_.y, -1.0f, 1.0f);
+    ImGui::SliderFloat("RotationZ", &image_->transform_.rotation_.z, -1.0f, 1.0f);
     ImGui::End();
 }

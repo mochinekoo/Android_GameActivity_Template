@@ -21,16 +21,75 @@ void Image::Update() {
 void Image::Draw() {
     glUseProgram(GetShaderManager()->getShaderProgram());
 
-    const GLfloat identity[16] = {
+    GLfloat projectionMatrix[16] = {
             1, 0, 0, 0,
             0, 1, 0, 0,
             0, 0, 1, 0,
             0, 0, 0, 1
     };
 
-    GLint projectionLocation = glGetUniformLocation(GetShaderManager()->getShaderProgram(), "uProjection");
+    GLfloat viewMatrix[16] = {
+            1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            0, 0, 0, 1
+    };
 
-    glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, identity);
+    GLfloat translationMatrix[16] = {
+            1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            transform_.location_.x, transform_.location_.y, transform_.location_.z, 1
+    };
+
+    GLfloat scaleMatrix[16] = {
+            transform_.scale_.x, 0, 0, 0,
+            0, transform_.scale_.y, 0, 0,
+            0, 0, transform_.scale_.z, 0,
+            0, 0, 0, 1
+    };
+
+    GLfloat rotationXMatrix[16] = {
+            1, 0, 0, 0,
+            0, std::cos(transform_.rotation_.x), -std::sin(transform_.rotation_.x), 0,
+            0, std::sin(transform_.rotation_.x), std::cos(transform_.rotation_.x), 0,
+            0, 0, 0, 1
+    };
+
+    GLfloat rotationYMatrix[16] = {
+            std::cos(transform_.rotation_.y), 0, std::sin(transform_.rotation_.y), 0,
+            0, 1, 0, 0,
+            -std::sin(transform_.rotation_.y), 0, std::cos(transform_.rotation_.y), 0,
+            0, 0, 0, 1
+    };
+
+    GLfloat rotationZMatrix[16] = {
+            std::cos(transform_.rotation_.z), -std::sin(transform_.rotation_.z), 0, 0,
+            std::sin(transform_.rotation_.z), std::cos(transform_.rotation_.z), 0, 0,
+            0, 0, 1, 0,
+            0, 0, 0, 1
+    };
+
+    GLint location = glGetUniformLocation(GetShaderManager()->getShaderProgram(), "uTranslationMatrix");
+    glUniformMatrix4fv(location, 1, GL_FALSE, translationMatrix);
+
+    GLint scale = glGetUniformLocation(GetShaderManager()->getShaderProgram(), "uScaleMatrix");
+    glUniformMatrix4fv(scale, 1, GL_FALSE, scaleMatrix);
+
+    GLint rotationX = glGetUniformLocation(GetShaderManager()->getShaderProgram(), "uRotationXMatrix");
+    glUniformMatrix4fv(rotationX, 1, GL_FALSE, rotationXMatrix);
+
+    GLint rotationY = glGetUniformLocation(GetShaderManager()->getShaderProgram(), "uRotationYMatrix");
+    glUniformMatrix4fv(rotationY, 1, GL_FALSE, rotationYMatrix);
+
+    GLint rotationZ = glGetUniformLocation(GetShaderManager()->getShaderProgram(), "uRotationZMatrix");
+    glUniformMatrix4fv(rotationZ, 1, GL_FALSE, rotationZMatrix);
+
+    GLint view = glGetUniformLocation(GetShaderManager()->getShaderProgram(), "uViewMatrix");
+    glUniformMatrix4fv(view, 1, GL_FALSE, viewMatrix);
+
+    GLint projectionLocation = glGetUniformLocation(GetShaderManager()->getShaderProgram(), "uProjectionMatrix");
+    glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, projectionMatrix);
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, getTextureID());

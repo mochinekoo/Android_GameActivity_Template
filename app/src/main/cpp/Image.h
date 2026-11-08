@@ -10,12 +10,14 @@
 #include <GLES3/gl3.h>
 #include <vector>
 #include <game-activity/native_app_glue/android_native_app_glue.h>
+#include "mochinekoengine.h"
 
 class Image {
 private:
     GLuint textureID_;
     android_app* app_;
 public:
+    Transform transform_;
 
     static Image* Load(android_app* app, const char* path) {
         AAsset* asset = AAssetManager_open(app->activity->assetManager, path, AASSET_MODE_BUFFER);
@@ -57,6 +59,7 @@ public:
     Image(android_app* app, GLuint textureID) {
         textureID_ = textureID;
         app_ = app;
+        transform_ = Transform();
     };
 
     GLuint getTextureID() const { return textureID_; }
