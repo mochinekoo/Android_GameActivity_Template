@@ -10,6 +10,7 @@ project("android_gameactivity_template")
 add_library(android_gameactivity_template SHARED
         main.cpp
         DebugScene.cpp
+        ShaderManager.cpp
 )
 
 # Searches for a package provided by the game activity dependency

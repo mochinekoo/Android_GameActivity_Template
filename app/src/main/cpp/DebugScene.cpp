@@ -11,6 +11,11 @@
 #include <android/log.h>
 
 #include "DebugScene.h"
+#include "ShaderManager.h"
+
+namespace {
+    ShaderManager* shaderManager_ = nullptr;
+}
 
 DebugScene::~DebugScene() {
 }
@@ -54,6 +59,8 @@ void DebugScene::Init() {
     resultFunc = eglMakeCurrent(display_, surface_, surface_, context_);
     __android_log_print(ANDROID_LOG_INFO, LOG_TAG, "サーフェス: %d", resultFunc);
 
+    shaderManager_ = new ShaderManager(app_);
+    shaderManager_->Init();
     initialized_ = true;
 }
 
@@ -68,6 +75,11 @@ void DebugScene::Draw() {
     glViewport(0, 0, width_, height_);
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
+
+    glUseProgram(shaderManager_->getShaderProgram());
+    glBindVertexArray(shaderManager_->getVAO());
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glBindVertexArray(0);
 
     eglSwapBuffers(display_, surface_);
 }
