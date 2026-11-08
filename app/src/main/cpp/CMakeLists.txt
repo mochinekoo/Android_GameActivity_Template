@@ -11,6 +11,15 @@ add_library(android_gameactivity_template SHARED
         main.cpp
         DebugScene.cpp
         ShaderManager.cpp
+
+        ImGUI/imgui.cpp
+        ImGUI/imgui_demo.cpp
+        ImGUI/imgui_draw.cpp
+        ImGUI/imgui_impl_android.cpp
+        ImGUI/imgui_impl_opengl3.cpp
+        ImGUI/imgui_stdlib.cpp
+        ImGUI/imgui_tables.cpp
+        ImGUI/imgui_widgets.cpp
 )
 
 # Searches for a package provided by the game activity dependency

@@ -13,6 +13,9 @@
 #include "DebugScene.h"
 #include "ShaderManager.h"
 #include "Image.h"
+#include "ImGUI/imgui.h"
+#include "ImGUI/imgui_impl_opengl3.h"
+#include "ImGUI/imgui_impl_android.h"
 
 namespace {
     ShaderManager* shaderManager_ = nullptr;
@@ -80,6 +83,10 @@ void DebugScene::Draw() {
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
+    ImGui_ImplAndroid_NewFrame();
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui::NewFrame();
+
     glUseProgram(shaderManager_->getShaderProgram());
 
     const GLfloat identity[16] = {
@@ -109,6 +116,17 @@ void DebugScene::Draw() {
     glBindVertexArray(shaderManager_->getVAO());
     glDrawArrays(GL_TRIANGLES, 0, 6);
     glBindVertexArray(0);
+
+    //imgui
+    ImGui::Begin("Debug");
+    ImGui::End();
+
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+        ImGui::UpdatePlatformWindows();
+        ImGui::RenderPlatformWindowsDefault();
+    }
 
     eglSwapBuffers(display_, surface_);
 }
