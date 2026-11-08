@@ -102,6 +102,9 @@ void initImGUI(ANativeWindow* window) {
     io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
     ImGuiStyle& style = ImGui::GetStyle();
+    style.ScaleAllSizes(3.0f);
+    io.FontGlobalScale = 3.0f;
+
     ImGui::StyleColorsDark();
     ImGui_ImplAndroid_Init(window);
     ImGui_ImplOpenGL3_Init();
