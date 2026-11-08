@@ -9,9 +9,90 @@
 #include "ImGUI/imgui.h"
 #include "ImGUI/imgui_impl_opengl3.h"
 #include "ImGUI/imgui_impl_android.h"
+#include "mochinekoengine.h"
+#include "ShaderManager.h"
+
+using namespace MochinekoEngine;
 
 namespace {
     DebugScene* debugScene_ = nullptr;
+}
+
+namespace MochinekoEngine {
+    inline bool canShutdown_;
+    inline android_app* androidApp_;
+    inline ShaderManager* shaderManager_;
+
+    inline EGLDisplay display_;
+    inline EGLSurface surface_;
+    inline EGLContext context_;
+    inline EGLint width_;
+    inline EGLint height_;
+
+    inline float background_[4];
+
+    android_app* GetApp() { return androidApp_; }
+
+    ShaderManager* GetShaderManager() { return shaderManager_; }
+
+    bool CanShutdown() { return canShutdown_; }
+    void Shutdown() { canShutdown_ = true; }
+
+    float* getBackground() {return background_;}
+    void setBackground(float r, float g, float b, float a) {
+        background_[0] = r;
+        background_[1] = g;
+        background_[2] = b;
+        background_[3] = a;
+    };
+
+    EGLDisplay getDisplay() { return display_; }
+    EGLSurface getSurface() { return surface_; }
+    EGLContext getContext() { return context_; }
+    EGLint getWidth() { return width_; }
+    EGLint* getWidthPointer() { return &width_; }
+    EGLint getHeight()  { return height_; }
+    EGLint* getHeightPointer() { return &height_;}
+}
+
+void initOpenGL() {
+    EGLBoolean resultFunc = false;
+
+    MochinekoEngine::display_ = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+    resultFunc = eglInitialize(MochinekoEngine::display_ , nullptr, nullptr);
+    __android_log_print(ANDROID_LOG_INFO, LOG_TAG, "eglの初期化: %d", resultFunc);
+
+    constexpr EGLint attribs[] = {
+            EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT,
+            EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
+            EGL_BLUE_SIZE, 8,
+            EGL_GREEN_SIZE, 8,
+            EGL_RED_SIZE, 8,
+            EGL_DEPTH_SIZE, 24,
+            EGL_NONE
+    };
+
+    EGLConfig config = EGLConfig();
+    EGLint numConfig = 0;
+    resultFunc = eglChooseConfig(MochinekoEngine::display_ , attribs, &config, 1, &numConfig);
+    __android_log_print(ANDROID_LOG_INFO, LOG_TAG, "eglのConfig: %d", resultFunc);
+
+    EGLint format = 0;
+    resultFunc = eglGetConfigAttrib(display_ , config, EGL_NATIVE_VISUAL_ID, &format);
+    __android_log_print(ANDROID_LOG_INFO, LOG_TAG, "getConfigAttrib: %d", resultFunc);
+
+    resultFunc = ANativeWindow_setBuffersGeometry(GetApp()->window, 0, 0, format);
+    __android_log_print(ANDROID_LOG_INFO, LOG_TAG, "setBuffersGeometry: %d", resultFunc);
+
+    const EGLint contextAttribs[] = {
+            EGL_CONTEXT_CLIENT_VERSION, 3,
+            EGL_NONE
+    };
+    context_ = eglCreateContext(getDisplay(), config, EGL_NO_CONTEXT, contextAttribs);
+
+    surface_ = eglCreateWindowSurface(getDisplay(), config, GetApp()->window, nullptr);
+    resultFunc = eglMakeCurrent(getDisplay(), surface_, getSurface(), getContext());
+    __android_log_print(ANDROID_LOG_INFO, LOG_TAG, "サーフェス: %d", resultFunc);
 }
 
 void initImGUI(ANativeWindow* window) {
@@ -95,6 +176,8 @@ void handleEvent(android_app* app) {
 void handleApp(android_app *pApp, int32_t cmd) {
     switch (cmd) {
         case APP_CMD_INIT_WINDOW: {
+            initOpenGL();
+            GetShaderManager()->Init();
             debugScene_->Init();
             initImGUI(pApp->window);
             __android_log_print(ANDROID_LOG_INFO, LOG_TAG, "アプリの初期化");
@@ -115,8 +198,16 @@ void handleApp(android_app *pApp, int32_t cmd) {
 
 void android_main(struct android_app *pApp) {
     __android_log_print(ANDROID_LOG_INFO, LOG_TAG, "起動したよ");
+    MochinekoEngine::androidApp_ = pApp;
+    MochinekoEngine::canShutdown_ = false;
+    MochinekoEngine::shaderManager_ = new ShaderManager(pApp);
+    MochinekoEngine::background_[0] = 1.0f;
+    MochinekoEngine::background_[1] = 1.0f;
+    MochinekoEngine::background_[2] = 1.0f;
+    MochinekoEngine::background_[3] = 1.0f;
+
     pApp->onAppCmd = handleApp;
-    debugScene_ = new DebugScene(pApp);
+    debugScene_ = new DebugScene();
 
     do {
         while (true) {
@@ -147,12 +238,32 @@ void android_main(struct android_app *pApp) {
             }
 
             handleEvent(pApp);
-            if (debugScene_->getSurface() != EGL_NO_SURFACE
-                    && debugScene_->getContext() != EGL_NO_CONTEXT
+            if (getSurface() != EGL_NO_SURFACE && getContext() != EGL_NO_CONTEXT
                     && debugScene_->getInitialized()) {
+                eglQuerySurface(getDisplay(), getSurface(), EGL_WIDTH, getWidthPointer());
+                eglQuerySurface(getDisplay(), getSurface(), EGL_HEIGHT, getHeightPointer());
+
+                auto bgColor = getBackground();
+                glViewport(0, 0, getWidth(), getHeight());
+                glClearColor(bgColor[0], bgColor[1], bgColor[2], bgColor[3]);
+                glClear(GL_COLOR_BUFFER_BIT);
+
+                ImGui_ImplAndroid_NewFrame();
+                ImGui_ImplOpenGL3_NewFrame();
+                ImGui::NewFrame();
+
                 debugScene_->Update();
                 debugScene_->Draw();
+
+                ImGui::Render();
+                ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+                if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+                    ImGui::UpdatePlatformWindows();
+                    ImGui::RenderPlatformWindowsDefault();
+                }
+
+                eglSwapBuffers(display_, surface_);
             }
         }
-    } while (!pApp->destroyRequested);
+    } while (!pApp->destroyRequested || MochinekoEngine::canShutdown_);
 }
