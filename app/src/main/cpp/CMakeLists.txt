@@ -9,6 +9,7 @@ project("android_gameactivity_template")
 # one used for loading in your Kotlin/Java or AndroidManifest.txt files.
 add_library(android_gameactivity_template SHARED
         main.cpp
+        DebugScene.cpp
 )
 
 # Searches for a package provided by the game activity dependency
