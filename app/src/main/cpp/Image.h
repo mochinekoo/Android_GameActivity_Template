@@ -15,7 +15,6 @@
 class Image {
 private:
     GLuint textureID_;
-    android_app* app_;
 public:
     Transform transform_;
 
