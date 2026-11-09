@@ -15,50 +15,16 @@
 class Image {
 private:
     GLuint textureID_;
+    const char* path_;
+    GLfloat width_, height_;
 public:
     Transform transform_;
 
-    static Image* Load(android_app* app, const char* path) {
-        AAsset* asset = AAssetManager_open(app->activity->assetManager, path, AASSET_MODE_BUFFER);
-        AImageDecoder* imageDecoder = nullptr;
-        AImageDecoder_createFromAAsset(asset, &imageDecoder);
-        AImageDecoder_setAndroidBitmapFormat(imageDecoder, ANDROID_BITMAP_FORMAT_RGBA_8888);
-        const AImageDecoderHeaderInfo* headerInfo = nullptr;
-        headerInfo = AImageDecoder_getHeaderInfo(imageDecoder);
-        int width = AImageDecoderHeaderInfo_getWidth(headerInfo);
-        int height = AImageDecoderHeaderInfo_getHeight(headerInfo);
-        unsigned int stride = AImageDecoder_getMinimumStride(imageDecoder);
-        std::vector<uint8_t> imageData = std::vector<uint8_t>(height * stride);
-        AImageDecoder_decodeImage(imageDecoder, imageData.data(), stride, imageData.size());
-
-        GLuint textureID = 0;
-        glGenTextures(1, &textureID);
-        glBindTexture(GL_TEXTURE_2D, textureID);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexImage2D(
-                GL_TEXTURE_2D, // target
-                0, // mip level
-                GL_RGBA, // internal format, often advisable to use BGR
-                width, // width of the texture
-                height, // height of the texture
-                0, // border (always 0)
-                GL_RGBA, // format
-                GL_UNSIGNED_BYTE, // type
-                imageData.data() // Data to upload
-        );
-        glGenerateMipmap(GL_TEXTURE_2D);
-
-        return new Image(app, textureID);
-    };
-
-    Image(android_app* app, GLuint textureID) {
-        textureID_ = textureID;
-        app_ = app;
-        transform_ = Transform();
+    Image(const char* path) {
+            path_ = path;
+            transform_ = Transform();
+            width_ = 0.0f;
+            height_ = 0.0f;
     };
 
     GLuint getTextureID() const { return textureID_; }
@@ -68,6 +34,7 @@ public:
     void Draw();
     void Release();
 
+    void InitAsset();
     void InitShader();
 };
 

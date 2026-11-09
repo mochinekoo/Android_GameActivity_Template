@@ -7,6 +7,8 @@
 
 #include <game-activity/native_app_glue/android_native_app_glue.h>
 #include "ShaderManager.h"
+#include <GLES3/gl3.h>
+#include <EGL/egl.h>
 
 struct Location {
     float x, y, z;
@@ -40,6 +42,14 @@ namespace MochinekoEngine {
 
     bool CanShutdown();
     void Shutdown();
+
+    EGLDisplay getDisplay();
+    EGLSurface getSurface();
+    EGLContext getContext();
+    EGLint getWidth();
+    EGLint* getWidthPointer();
+    EGLint getHeight();
+    EGLint* getHeightPointer();
 }
 
 #endif //ANDROID_GAMEACTIVITY_TEMPLATE_MOCHINEKOENGINE_H

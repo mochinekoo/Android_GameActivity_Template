@@ -28,7 +28,7 @@ DebugScene::~DebugScene() {
 }
 
 void DebugScene::Init() {
-    image_ = Image::Load(GetApp(), "android_robot.png");
+    image_ = new Image("android_robot.png");
     image_->Init();
     initialized_ = true;
 }
@@ -42,9 +42,11 @@ void DebugScene::Draw() {
     image_->Draw();
 
     //imgui
+    auto width = getWidth();
+    auto height = getHeight();
     ImGui::Begin("Debug");
-    ImGui::SliderFloat("LocX", &image_->transform_.location_.x, -1.0f, 1.0f);
-    ImGui::SliderFloat("LocY", &image_->transform_.location_.y, -1.0f, 1.0f);
+    ImGui::SliderFloat("LocX", &image_->transform_.location_.x, -width, width);
+    ImGui::SliderFloat("LocY", &image_->transform_.location_.y, -height, height);
     ImGui::SliderFloat("LocZ", &image_->transform_.location_.z, -1.0f, 1.0f);
     ImGui::SliderFloat("ScaleX", &image_->transform_.scale_.x, 0, 10.0f);
     ImGui::SliderFloat("ScaleY", &image_->transform_.scale_.y, 0, 10.0f);

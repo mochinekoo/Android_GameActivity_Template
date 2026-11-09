@@ -14,6 +14,7 @@
 using namespace MochinekoEngine;
 
 void Image::Init() {
+    InitAsset();
     InitShader();
 }
 
@@ -24,7 +25,7 @@ void Image::Update() {
 void Image::Draw() {
     glUseProgram(GetShaderManager()->getShaderProgram());
 
-    GLfloat* projectionMatrix = Matrix4x4().Identity().build();
+    GLfloat* projectionMatrix = Matrix4x4().Orthographic(0, getWidth(), getHeight(), 0, 0, 100).build();
     GLfloat* viewMatrix = Matrix4x4().Identity().build();
 
     GLfloat* translationMatrix = Matrix4x4().Translation(
@@ -76,15 +77,56 @@ void Image::Release() {
 
 }
 
+void Image::InitAsset() {
+
+    ///
+    /// アセットから取得
+    ///
+    AAsset* asset = AAssetManager_open(GetApp()->activity->assetManager, path_, AASSET_MODE_BUFFER);
+    AImageDecoder* imageDecoder = nullptr;
+    AImageDecoder_createFromAAsset(asset, &imageDecoder);
+    AImageDecoder_setAndroidBitmapFormat(imageDecoder, ANDROID_BITMAP_FORMAT_RGBA_8888);
+    const AImageDecoderHeaderInfo* headerInfo = nullptr;
+    headerInfo = AImageDecoder_getHeaderInfo(imageDecoder);
+    width_ = AImageDecoderHeaderInfo_getWidth(headerInfo);
+    height_ = AImageDecoderHeaderInfo_getHeight(headerInfo);
+    unsigned int stride = AImageDecoder_getMinimumStride(imageDecoder);
+    std::vector<uint8_t> imageData = std::vector<uint8_t>(height_ * stride);
+    AImageDecoder_decodeImage(imageDecoder, imageData.data(), stride, imageData.size());
+
+    ///
+    /// 画像を作成
+    ///
+    glGenTextures(1, &textureID_);
+    glBindTexture(GL_TEXTURE_2D, textureID_);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexImage2D(
+            GL_TEXTURE_2D,  // テクスチャの種類
+            0, // ミップマップレベル
+            GL_RGBA, // フォーマット
+            width_, // テクスチャの幅
+            height_, // テクスチャの高さ
+            0, // ボーダー
+            GL_RGBA, // フォーマット
+            GL_UNSIGNED_BYTE,
+            imageData.data() // 画像のデータ
+    );
+    glGenerateMipmap(GL_TEXTURE_2D);
+}
+
 void Image::InitShader() {
     float vertices[] = {
-            -0.5f, 0.5f, 0.0f, 0.0f, 0.0f,
-            -0.5f, -0.5f, 0.0f, 0.0f, 1.0f,
-            0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
+            0.0f, 0.0f, 0.0f, 0.0f, 0.0f,  // 左上
+            0.0f, height_, 0.0f, 0.0f, 1.0f, // 左下
+            width_, 0.0f, 0.0f, 1.0f, 0.0f,   // 右上
 
-            0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
-            -0.5f, -0.5f, 0.0f, 0.0f, 1.0f,
-            0.5f, -0.5f, 0.0f, 1.0f, 1.0f
+            width_, 0.0f, 0.0f, 1.0f, 0.0f,   // 右上
+            0.0f, height_, 0.0f, 0.0f, 1.0f, // 左下
+            width_, height_, 0.0f, 1.0f, 1.0f   // 右下
     };
     glBindVertexArray(GetShaderManager()->getVAO());
     glBindBuffer(GL_ARRAY_BUFFER, GetShaderManager()->getVBO());
