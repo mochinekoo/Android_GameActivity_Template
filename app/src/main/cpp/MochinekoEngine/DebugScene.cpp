@@ -14,9 +14,9 @@
 #include "ShaderManager.h"
 #include "Image.h"
 #include "mochinekoengine.h"
-#include "ImGUI/imgui.h"
-#include "ImGUI/imgui_impl_opengl3.h"
-#include "ImGUI/imgui_impl_android.h"
+#include "../ImGUI/imgui.h"
+#include "../ImGUI/imgui_impl_opengl3.h"
+#include "../ImGUI/imgui_impl_android.h"
 
 namespace {
     Image* image_ = nullptr;
@@ -42,8 +42,8 @@ void DebugScene::Draw() {
     image_->Draw();
 
     //imgui
-    auto width = getWidth();
-    auto height = getHeight();
+    auto width = GetWidth();
+    auto height = GetHeight();
     ImGui::Begin("Debug");
     ImGui::SliderFloat("LocX", &image_->transform_.location_.x, -width, width);
     ImGui::SliderFloat("LocY", &image_->transform_.location_.y, -height, height);

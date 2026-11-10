@@ -9,9 +9,10 @@ project("android_gameactivity_template")
 # one used for loading in your Kotlin/Java or AndroidManifest.txt files.
 add_library(android_gameactivity_template SHARED
         main.cpp
-        DebugScene.cpp
-        ShaderManager.cpp
-        Image.cpp
+        MochinekoEngine/mochinekoengine.cpp
+        MochinekoEngine/DebugScene.cpp
+        MochinekoEngine/ShaderManager.cpp
+        MochinekoEngine/Image.cpp
 
         ImGUI/imgui.cpp
         ImGUI/imgui_demo.cpp

@@ -10,10 +10,10 @@
 #include "Matrix.h"
 #include <GLES3/gl3.h>
 #include <GLES3/gl3ext.h>
-#include "glm/glm.hpp"
-#include "glm/ext/scalar_constants.hpp"
-#include "glm/ext/matrix_clip_space.hpp"
-#include "glm/gtc/type_ptr.hpp"
+#include "../glm/glm.hpp"
+#include "../glm/ext/scalar_constants.hpp"
+#include "../glm/ext/matrix_clip_space.hpp"
+#include "../glm/gtc/type_ptr.hpp"
 
 using namespace MochinekoEngine;
 
@@ -29,7 +29,7 @@ void Image::Update() {
 void Image::Draw() {
     glUseProgram(GetShaderManager()->getShaderProgram());
 
-    glm::mat4 projectionMatrix = glm::ortho(0.0f, (float) getWidth(), (float) getHeight(), 0.0f, 100.0f, -100.0f);
+    glm::mat4 projectionMatrix = glm::ortho(0.0f, (float) GetWidth(), (float) GetHeight(), 0.0f, 100.0f, -100.0f);
     glm::mat4 viewMatrix = glm::mat4(1.0f);
     glm::mat4 worldMatrix(1.0f);
     worldMatrix = glm::translate(worldMatrix, glm::vec3(transform_.location_.x, transform_.location_.y, transform_.location_.z));
