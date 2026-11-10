@@ -93,6 +93,10 @@ void initOpenGL() {
     surface_ = eglCreateWindowSurface(getDisplay(), config, GetApp()->window, nullptr);
     resultFunc = eglMakeCurrent(getDisplay(), surface_, getSurface(), getContext());
     __android_log_print(ANDROID_LOG_INFO, LOG_TAG, "サーフェス: %d", resultFunc);
+
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
+    glDepthMask(GL_TRUE);
 }
 
 void initImGUI(ANativeWindow* window) {
@@ -249,7 +253,8 @@ void android_main(struct android_app *pApp) {
                 auto bgColor = getBackground();
                 glViewport(0, 0, getWidth(), getHeight());
                 glClearColor(bgColor[0], bgColor[1], bgColor[2], bgColor[3]);
-                glClear(GL_COLOR_BUFFER_BIT);
+                glClearDepthf(1.0f);
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
                 ImGui_ImplAndroid_NewFrame();
                 ImGui_ImplOpenGL3_NewFrame();
