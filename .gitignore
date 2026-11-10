@@ -16,3 +16,4 @@ local.properties
 /.idea
 
 /app/src/main/cpp/ImGUI
+/app/src/main/cpp/glm

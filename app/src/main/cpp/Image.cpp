@@ -10,6 +10,10 @@
 #include "Matrix.h"
 #include <GLES3/gl3.h>
 #include <GLES3/gl3ext.h>
+#include "glm/glm.hpp"
+#include "glm/ext/scalar_constants.hpp"
+#include "glm/ext/matrix_clip_space.hpp"
+#include "glm/gtc/type_ptr.hpp"
 
 using namespace MochinekoEngine;
 
@@ -25,41 +29,22 @@ void Image::Update() {
 void Image::Draw() {
     glUseProgram(GetShaderManager()->getShaderProgram());
 
-    GLfloat* projectionMatrix = Matrix4x4().Orthographic(0, getWidth(), getHeight(), 0, 0, 100).build();
-    GLfloat* viewMatrix = Matrix4x4().Identity().build();
+    glm::mat4 projectionMatrix = glm::ortho(0.0f, (float) getWidth(), (float) getHeight(), 0.0f, 0.0f, 100.0f);
+    glm::mat4 viewMatrix = glm::mat4(1.0f);
+    glm::mat4 worldMatrix(1.0f);
+    worldMatrix = glm::translate(worldMatrix, glm::vec3(transform_.location_.x, transform_.location_.y, transform_.location_.z));
+    worldMatrix = glm::rotate(worldMatrix, glm::radians(transform_.rotation_.z), glm::vec3(0.0f, 0.0f, 1.0f));
+    worldMatrix = glm::rotate(worldMatrix, glm::radians(transform_.rotation_.y), glm::vec3(0, 1, 0));
+    worldMatrix = glm::rotate(worldMatrix, glm::radians(transform_.rotation_.x), glm::vec3(1, 0, 0));
+    worldMatrix = glm::scale(worldMatrix, glm::vec3(transform_.scale_.x, transform_.scale_.y, transform_.scale_.z));
+    glm::mat4 worldViewProjectionMatrix = projectionMatrix * viewMatrix * worldMatrix;
 
-    GLfloat* translationMatrix = Matrix4x4().Translation(
-            transform_.location_.x,
-            transform_.location_.y,
-            transform_.location_.z).build();
-    GLfloat* scaleMatrix = Matrix4x4().Scale(
-            transform_.scale_.x,
-            transform_.scale_.y,
-            transform_.scale_.z).build();
-    GLfloat* rotationXMatrix = Matrix4x4().RotationX(transform_.rotation_.x).build();
-    GLfloat* rotationYMatrix = Matrix4x4().RotationY(transform_.rotation_.y).build();
-    GLfloat* rotationZMatrix = Matrix4x4().RotationZ(transform_.rotation_.z).build();
-
-    GLint location = glGetUniformLocation(GetShaderManager()->getShaderProgram(), "uTranslationMatrix");
-    glUniformMatrix4fv(location, 1, GL_FALSE, translationMatrix);
-
-    GLint scale = glGetUniformLocation(GetShaderManager()->getShaderProgram(), "uScaleMatrix");
-    glUniformMatrix4fv(scale, 1, GL_FALSE, scaleMatrix);
-
-    GLint rotationX = glGetUniformLocation(GetShaderManager()->getShaderProgram(), "uRotationXMatrix");
-    glUniformMatrix4fv(rotationX, 1, GL_FALSE, rotationXMatrix);
-
-    GLint rotationY = glGetUniformLocation(GetShaderManager()->getShaderProgram(), "uRotationYMatrix");
-    glUniformMatrix4fv(rotationY, 1, GL_FALSE, rotationYMatrix);
-
-    GLint rotationZ = glGetUniformLocation(GetShaderManager()->getShaderProgram(), "uRotationZMatrix");
-    glUniformMatrix4fv(rotationZ, 1, GL_FALSE, rotationZMatrix);
-
+    GLint location = glGetUniformLocation(GetShaderManager()->getShaderProgram(), "uWorldMatrix");
+    glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(worldMatrix));
     GLint view = glGetUniformLocation(GetShaderManager()->getShaderProgram(), "uViewMatrix");
-    glUniformMatrix4fv(view, 1, GL_FALSE, viewMatrix);
-
+    glUniformMatrix4fv(view, 1, GL_FALSE, glm::value_ptr(viewMatrix));
     GLint projectionLocation = glGetUniformLocation(GetShaderManager()->getShaderProgram(), "uProjectionMatrix");
-    glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, projectionMatrix);
+    glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, getTextureID());
