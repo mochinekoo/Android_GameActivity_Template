@@ -30,7 +30,6 @@ DebugScene::~DebugScene() {
 void DebugScene::Init() {
     image_ = new Image("android_robot.png");
     image_->Init();
-    initialized_ = true;
 }
 
 void DebugScene::Update() {
@@ -55,4 +54,8 @@ void DebugScene::Draw() {
     ImGui::SliderFloat("RotationY", &image_->transform_.rotation_.y, -1.0f, 1.0f);
     ImGui::SliderFloat("RotationZ", &image_->transform_.rotation_.z, -1.0f, 1.0f);
     ImGui::End();
+}
+
+void DebugScene::Release() {
+
 }

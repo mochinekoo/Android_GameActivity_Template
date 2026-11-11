@@ -7,23 +7,23 @@
 
 #include <EGL/egl.h>
 #include <game-activity/native_app_glue/android_native_app_glue.h>
+#include "BaseScene.h"
 
-class DebugScene {
+class DebugScene : public BaseScene {
 private:
-    bool initialized_;
 public:
 
-    inline DebugScene() {
-        initialized_ = false;
+    inline DebugScene()
+        : BaseScene("DebugScene") {
     }
 
     ~DebugScene();
 
-    void Init();
-    void Update();
-    void Draw();
+    void Init() override;
+    void Update() override;
+    void Draw() override;
+    void Release() override;
 
-    bool getInitialized() const { return initialized_; }
 };
 
 

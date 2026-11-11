@@ -13,6 +13,7 @@ add_library(android_gameactivity_template SHARED
         MochinekoEngine/DebugScene.cpp
         MochinekoEngine/ShaderManager.cpp
         MochinekoEngine/Image.cpp
+        MochinekoEngine/SceneManager.cpp
 
         ImGUI/imgui.cpp
         ImGUI/imgui_demo.cpp

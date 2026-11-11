@@ -11,17 +11,16 @@
 #include "../ImGUI/imgui_impl_android.h"
 #include "mochinekoengine.h"
 #include "ShaderManager.h"
+#include "SceneManager.h"
 
 using namespace MochinekoEngine;
-
-namespace {
-    DebugScene* debugScene_ = nullptr;
-}
 
 namespace MochinekoEngine {
     inline bool canShutdown_;
     inline android_app* androidApp_;
+
     inline ShaderManager* shaderManager_;
+    inline SceneManager* sceneManager_;
 
     inline EGLDisplay display_;
     inline EGLSurface surface_;
@@ -42,13 +41,13 @@ namespace MochinekoEngine {
         MochinekoEngine::androidApp_ = app;
         MochinekoEngine::canShutdown_ = false;
         MochinekoEngine::shaderManager_ = new ShaderManager(app);
+        MochinekoEngine::sceneManager_ = new SceneManager();
         MochinekoEngine::background_[0] = 1.0f;
         MochinekoEngine::background_[1] = 1.0f;
         MochinekoEngine::background_[2] = 1.0f;
         MochinekoEngine::background_[3] = 1.0f;
 
         app->onAppCmd = handleApp;
-        debugScene_ = new DebugScene();
 
         RunMainLoop();
         return true;
@@ -70,11 +69,11 @@ namespace MochinekoEngine {
                 // 0秒の場合は、常にALOOPER_POLL_TIMEOUT（-3）を返す
                 switch (result) {
                     case ALOOPER_POLL_ERROR: {
-                        __android_log_print(ANDROID_LOG_INFO, LOG_TAG, "エラーが発生しました");
+                        LOG_I("エラーが発生しました");
                         break;
                     }
                     case ALOOPER_EVENT_ERROR: {
-                        __android_log_print(ANDROID_LOG_INFO, LOG_TAG, "イベントのエラーが発生しました");
+                        LOG_I("イベントのエラーが発生しました");
                         break;
                     }
                 }
@@ -84,8 +83,7 @@ namespace MochinekoEngine {
                 }
 
                 handleEvent(GetApp());
-                if (GetSurface() != EGL_NO_SURFACE && GetContext() != EGL_NO_CONTEXT
-                    && debugScene_->getInitialized()) {
+                if (GetSurface() != EGL_NO_SURFACE && GetContext() != EGL_NO_CONTEXT) {
                     eglQuerySurface(GetDisplay(), GetSurface(), EGL_WIDTH, GetWidthPointer());
                     eglQuerySurface(GetDisplay(), GetSurface(), EGL_HEIGHT, GetHeightPointer());
 
@@ -99,12 +97,23 @@ namespace MochinekoEngine {
                     ImGui_ImplOpenGL3_NewFrame();
                     ImGui::NewFrame();
 
-                    debugScene_->Update();
-                    debugScene_->Draw();
+                    SceneManager* sceneManager = GetSceneManager();
+                    BaseScene* currentScene = sceneManager->GetCurrentScene();
+                    if (sceneManager != nullptr) {
+                        sceneManager->Update();
+                        sceneManager->Draw();
+                    }
+                    else {
+                        assert(false && "SceneManager is not initialize!");
+                    }
 
                     if (mainLoopFunc_ != NULL) {
                         mainLoopFunc_();
                     }
+
+                    ImGui::Begin("Debug");
+                    ImGui::Text("SceneName: %s", currentScene == nullptr ? "(null)" : currentScene->GetName().c_str());
+                    ImGui::End();
 
                     ImGui::Render();
                     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -121,6 +130,7 @@ namespace MochinekoEngine {
 
     android_app* GetApp() { return androidApp_; }
 
+    SceneManager* GetSceneManager() { return sceneManager_; }
     ShaderManager* GetShaderManager() { return shaderManager_; }
 
     bool CanShutdown() { return canShutdown_; }
@@ -272,7 +282,7 @@ namespace MochinekoEngine {
             case APP_CMD_INIT_WINDOW: {
                 InitOpenGL();
                 GetShaderManager()->Init();
-                debugScene_->Init();
+                GetSceneManager()->Init();
                 InitImGUI(pApp->window);
                 __android_log_print(ANDROID_LOG_INFO, LOG_TAG, "アプリの初期化");
                 break;

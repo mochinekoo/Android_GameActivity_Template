@@ -5,8 +5,13 @@
 #ifndef ANDROID_GAMEACTIVITY_TEMPLATE_MOCHINEKOENGINE_H
 #define ANDROID_GAMEACTIVITY_TEMPLATE_MOCHINEKOENGINE_H
 
+#define LOG_I(message) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, message);
+#define LOG_E(message) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, message);
+#define LOG_W(message) __android_log_print(ANDROID_LOG_WARN, LOG_TAG, message);
+
 #include <game-activity/native_app_glue/android_native_app_glue.h>
 #include "ShaderManager.h"
+#include "SceneManager.h"
 #include <GLES3/gl3.h>
 #include <EGL/egl.h>
 #include <functional>
@@ -71,6 +76,8 @@ namespace MochinekoEngine {
      * 実行中のandroid_app構造体を返す関数
      */
     android_app* GetApp();
+
+    SceneManager* GetSceneManager();
     ShaderManager* GetShaderManager();
 
     void handleEvent(android_app* app);
